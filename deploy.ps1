@@ -1,7 +1,7 @@
-$managementGroupName = "eslz"
-$deploymentResourceGroupName = "eslz-mgmt"
-$automationAccountName = "eslz-aauto"
-$storageAccountName = "eslzstor01auto"
+$managementGroupName = "eslz" # Update this value
+$deploymentResourceGroupName = "eslz-mgmt" # Update this value
+$automationAccountName = "eslz-aauto" # Update this value
+$storageAccountName = "eslzstor01auto" # Update this value
 
 $deployment = New-AzResourceGroupDeployment -ResourceGroupName $deploymentResourceGroupName `
     -TemplateFile .\azuredeploy.bicep `
