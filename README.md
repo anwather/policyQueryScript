@@ -34,6 +34,7 @@ $storageAccountName = "eslzstor01auto" # Update this value -> Storage account na
 2) Provide an email address in the Logic App activity that reports will be sent to
 3) Adjust the frequency for the Logic App to run - i.e. if you are only generating a report weekly, set it to run daily - if no new blobs are available it just skips the trigger
 4) Create [Automation Schedules](https://docs.microsoft.com/en-us/azure/automation/shared-resources/schedules) and link to each runbook
+5) Give the managed identity for the automation account - permission to read policies and access the resource graph at the management group level. Access for the identity on the storage account should be granted by the script
 
 **NOTE:** The Logic app only looks at one container in the storage account - you may have to duplicate it and point the second instance to a different container
 if you are keeping the scans and policy compliance CSV files separately. 
