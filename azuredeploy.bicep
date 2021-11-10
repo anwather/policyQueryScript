@@ -20,20 +20,8 @@ var automationVariables = [
 
 var automationModules = [
   {
-    name: 'Az.Accounts'
-    version: '2.5.2'
-  }
-  {
     name: 'Az.ResourceGraph'
     version: '0.11.0'
-  }
-  {
-    name: 'Az.Storage'
-    version: '3.10.0'
-  }
-  {
-    name: 'Az.Resources'
-    version: '4.3.0'
   }
 ]
 
@@ -63,7 +51,7 @@ module automModules 'automationModules/automationModules.bicep' = [for item in a
     automationAccountName: aa.name
     location: resourceGroup().location
     moduleName: item.name
-    moduleUrl: 'https://devopsgallerystorage.blob.core.windows.net/packages/${toLower(item.Name)}.${item.version}.nupkg'
+    moduleUrl: 'https://devopsgallerystorage.blob.core.windows.net/packages/${toLower(item.name)}.${item.version}.nupkg'
   }
   dependsOn: [
     aa
@@ -104,6 +92,20 @@ resource containers 'Microsoft.Storage/storageAccounts/blobServices/containers@2
   ]
 }]
 
+resource wait 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
+  kind: 'AzurePowerShell'
+  location: resourceGroup().location
+  name: 'wait'
+  properties: {
+    scriptContent: 'Start-Sleep -Seconds 60'
+    retentionInterval: 'PT1H'
+    azPowerShellVersion: '6.4'
+  }
+  dependsOn: [
+    aa
+  ]
+}
+
 resource role1 'Microsoft.Authorization/roleAssignments@2020-08-01-preview' = {
   name: guid('automation-storage-contributor')
   scope: st1
@@ -114,6 +116,7 @@ resource role1 'Microsoft.Authorization/roleAssignments@2020-08-01-preview' = {
   dependsOn: [
     aa
     st1
+    wait
   ]
 }
 
