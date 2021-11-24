@@ -72,7 +72,7 @@ Write-Output "Reporting $($outputObjects.Count) non compliant objects"
 
 $outputObjects | Export-CSV -Path "$env:Temp\output.csv" -NoTypeInformation
 
-$runbookWorkerIp = (iInvoke-WebRequest -Uri "https://api.ipify.org" -UseBasicParsing).Content
+$runbookWorkerIp = (Invoke-WebRequest -Uri "https://api.ipify.org" -UseBasicParsing).Content
 
 Add-AzStorageAccountNetworkRule -ResourceGroupName $storageAccountResourceGroupName -AccountName $storageAccountName -IPAddressOrRange $runbookWorkerIp
 

@@ -97,7 +97,7 @@ $computerObjects = $objects | Group-Object -Property resourceId | Select-Object 
 
 Write-Output "Discovered $($computerObjects.Count) assessments"
 
-$runbookWorkerIp = (iInvoke-WebRequest -Uri "https://api.ipify.org" -UseBasicParsing).Content
+$runbookWorkerIp = (Invoke-WebRequest -Uri "https://api.ipify.org" -UseBasicParsing).Content
 
 Add-AzStorageAccountNetworkRule -ResourceGroupName $storageAccountResourceGroupName -AccountName $storageAccountName -IPAddressOrRange $runbookWorkerIp
 
