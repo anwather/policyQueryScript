@@ -1,5 +1,7 @@
 param automationAccountName string
+param automationAccountLocation string
 param storageAccountName string
+param storageAccountLocation string
 param managementGroupName string
 param storageAccountResourceGroupName string
 
@@ -33,7 +35,7 @@ var containerNames = [
 
 resource aa 'Microsoft.Automation/automationAccounts@2020-01-13-preview' = {
   name: automationAccountName
-  location: resourceGroup().location
+  location: automationAccountLocation
   identity: {
     type: 'SystemAssigned'
   }
@@ -49,9 +51,9 @@ module automModules 'automationModules/automationModules.bicep' = [for item in a
   name: toLower(replace(item.name, '.', '-'))
   params: {
     automationAccountName: aa.name
-    location: resourceGroup().location
+    location: automationAccountLocation
     moduleName: item.name
-    moduleUrl: 'https://devopsgallerystorage.blob.core.windows.net/packages/${toLower(item.name)}.${item.version}.nupkg'
+    moduleUrl: 'https://devopsgallerystorage.blob.${environment().suffixes.storage}/packages/${toLower(item.name)}.${item.version}.nupkg'
   }
   dependsOn: [
     aa
@@ -69,9 +71,9 @@ resource autoVars 'Microsoft.Automation/automationAccounts/variables@2019-06-01'
   ]
 }]
 
-resource st1 'Microsoft.Storage/storageAccounts@2021-02-01' = {
+resource st1 'Microsoft.Storage/storageAccounts@2021-06-01' = {
   name: storageAccountName
-  location: resourceGroup().location
+  location: storageAccountLocation
   kind: 'StorageV2'
   sku: {
     name: 'Standard_LRS'
@@ -95,7 +97,7 @@ resource containers 'Microsoft.Storage/storageAccounts/blobServices/containers@2
 resource wait 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
   kind: 'AzurePowerShell'
   location: resourceGroup().location
-  name: 'wait'
+  name: 'wait-logic-app'
   properties: {
     scriptContent: 'Start-Sleep -Seconds 60'
     retentionInterval: 'PT1H'
@@ -119,5 +121,3 @@ resource role1 'Microsoft.Authorization/roleAssignments@2020-08-01-preview' = {
     wait
   ]
 }
-
-output storageAccountName string = st1.name

@@ -72,11 +72,19 @@ Write-Output "Reporting $($outputObjects.Count) non compliant objects"
 
 $outputObjects | Export-CSV -Path "$env:Temp\output.csv" -NoTypeInformation
 
+$runbookWorkerIp = (iInvoke-WebRequest -Uri "https://api.ipify.org" -UseBasicParsing).Content
+
+Add-AzStorageAccountNetworkRule -ResourceGroupName $storageAccountResourceGroupName -AccountName $storageAccountName -IPAddressOrRange $runbookWorkerIp
+
+Start-Sleep -Seconds 60
+
 $ctx = (Get-AzStorageAccount -ResourceGroupName $storageAccountResourceGroupName -StorageAccountName $storageAccountName).Context
 
 $fileName = "$(Get-Date -Format yyyy_MM_dd_mm)_output.csv"
 
 Set-AzStorageBlobContent -File "$env:Temp\output.csv" -Blob $fileName -Container output -Context $ctx -Force
+
+Remove-AzStorageAccountNetworkRule -ResourceGroupName $storageAccountResourceGroupName -AccountName $storageAccountName -IPAddressOrRange $runbookWorkerIp
 
 
 

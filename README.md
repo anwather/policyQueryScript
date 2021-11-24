@@ -16,20 +16,20 @@ The following resources will be deployed to the resource group as defined in the
 ## Deployment instructions
 
 1) Ensure the [Bicep](https://github.com/Azure/bicep) is installed and available at $Path
-2) Modify the ```deploy.ps1``` script variables as indicated to suit your environment
+2) Deploy the solution by modifying the parameter value when deploying - an example is below:
 
 ```
-$managementGroupName = "eslz" # Update this value -> This is the root management group used to query the Resource Graph and query policy definitions
-$deploymentResourceGroupName = "eslz-mgmt" # Update this value -> Resource group for the resources to be deployed into
-$automationAccountName = "eslz-aauto" # Update this value -> Automation account name to be deployed
-$storageAccountName = "eslzstor01auto" # Update this value -> Storage account name to be deployed
+.\deploy.ps1 -ManagementGroupName eslz `
+        -DeploymentResourceGroupName eslz-auto `
+        -AutomationAccountName eslz-aauto `
+        -StorageAccountName eslzstor01auto `
+        -AutomationAccountLocation australiaeast `
+        -StorageAccountLocation australiasoutheast
 ```
-3) Run the ```deploy.ps1``` script to deploy the resources
 
 ## Post Deployment
 
-1) Both Logic App connections will need to be authorised
-- For the storage connection you need to provide the storage account name and acces key
+1) M365 Logic App connection will need to be authorised
 - For the M365 connection you need to provide authentication
 2) Provide an email address in the Logic App activity that reports will be sent to
 3) Adjust the frequency for the Logic App to run - i.e. if you are only generating a report weekly, set it to run daily - if no new blobs are available it just skips the trigger

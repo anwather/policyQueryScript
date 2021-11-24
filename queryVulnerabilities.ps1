@@ -97,6 +97,12 @@ $computerObjects = $objects | Group-Object -Property resourceId | Select-Object 
 
 Write-Output "Discovered $($computerObjects.Count) assessments"
 
+$runbookWorkerIp = (iInvoke-WebRequest -Uri "https://api.ipify.org" -UseBasicParsing).Content
+
+Add-AzStorageAccountNetworkRule -ResourceGroupName $storageAccountResourceGroupName -AccountName $storageAccountName -IPAddressOrRange $runbookWorkerIp
+
+Start-Sleep -Seconds 60
+
 $computerObjects | Foreach-Object {
     $outputObjects = @()
     $objects | Where-Object resourceId -eq $_ | Foreach-Object {
@@ -111,3 +117,5 @@ $computerObjects | Foreach-Object {
     $outputObjects | Export-CSV -Path $env:Temp\$fileName -NoTypeInformation
     Set-AzStorageBlobContent -File "$env:Temp\$fileName" -Blob $fileName -Container scans -Context $ctx -Force
 }
+
+Remove-AzStorageAccountNetworkRule -ResourceGroupName $storageAccountResourceGroupName -AccountName $storageAccountName -IPAddressOrRange $runbookWorkerIp

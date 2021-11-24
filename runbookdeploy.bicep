@@ -1,10 +1,11 @@
 param runbookName string
 param runbookUri string
 param automationAccountName string
+param automationAccountLocation string
 
 resource rb 'Microsoft.Automation/automationAccounts/runbooks@2019-06-01' = {
   name: '${automationAccountName}/${runbookName}'
-  location: resourceGroup().location
+  location: automationAccountLocation
   properties: {
     runbookType: 'PowerShell'
     publishContentLink: {

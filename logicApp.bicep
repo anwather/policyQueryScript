@@ -1,4 +1,10 @@
-resource blobConnection 'Microsoft.Web/connections@2016-06-01' = {
+param storageAccountName string
+
+resource st1 'Microsoft.Storage/storageAccounts@2021-06-01' existing = {
+  name: storageAccountName
+}
+
+resource blobConnection 'Microsoft.Web/connections@2018-07-01-preview' = {
   name: 'azureblob-1'
   location: resourceGroup().location
   kind: 'V1'
@@ -7,6 +13,10 @@ resource blobConnection 'Microsoft.Web/connections@2016-06-01' = {
       id: '/subscriptions/${subscription().subscriptionId}/providers/Microsoft.Web/locations/australiasoutheast/managedApis/azureblob'
     }
     displayName: 'blob-connection'
+    parameterValueSet: {
+      name: 'managedIdentityAuth'
+      values: {}
+    }
   }
 }
 
@@ -24,11 +34,14 @@ resource officeConnection 'Microsoft.Web/connections@2016-06-01' = {
 
 resource workflows_complianceReportEmail_name_resource 'Microsoft.Logic/workflows@2019-05-01' = {
   name: 'complianceReportEmail'
-  location: 'australiasoutheast'
+  location: resourceGroup().location
   dependsOn: [
     blobConnection
     officeConnection
   ]
+  identity: {
+    type: 'SystemAssigned'
+  }
   properties: {
     state: 'Enabled'
     definition: {
@@ -123,6 +136,11 @@ resource workflows_complianceReportEmail_name_resource 'Microsoft.Logic/workflow
           azureblob_1: {
             connectionId: blobConnection.id
             connectionName: 'azureblob-1'
+            connectionProperties: {
+              authentication: {
+                type: 'ManagedServiceIdentity'
+              }
+            }
             id: blobConnection.properties.api.id
           }
           office365: {
@@ -135,3 +153,30 @@ resource workflows_complianceReportEmail_name_resource 'Microsoft.Logic/workflow
     }
   }
 }
+
+resource wait 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
+  kind: 'AzurePowerShell'
+  location: resourceGroup().location
+  name: 'wait'
+  properties: {
+    scriptContent: 'Start-Sleep -Seconds 60'
+    retentionInterval: 'PT1H'
+    azPowerShellVersion: '6.4'
+  }
+  dependsOn: [
+    workflows_complianceReportEmail_name_resource
+  ]
+}
+
+resource blobReader 'Microsoft.Authorization/roleAssignments@2020-08-01-preview' = {
+  name: guid('logic-app-blob-reader')
+  properties: {
+    principalId: workflows_complianceReportEmail_name_resource.identity.principalId
+    roleDefinitionId: '/subscriptions/${subscription().subscriptionId}/providers/Microsoft.Authorization/roleDefinitions/2a2b9908-6ea1-4ae2-8e65-a410df84e7d1'
+  }
+  dependsOn: [
+    wait
+  ]
+}
+
+output logicAppResourceId string = workflows_complianceReportEmail_name_resource.id
